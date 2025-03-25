@@ -70,7 +70,7 @@ local utils = require("remote-nvim.utils")
 local function get_copy_paths(copy_config)
   local local_dirs = copy_config.dirs
   if local_dirs == "*" then
-    return { utils.path_join(utils.is_windows, copy_config.base) }
+    return { utils.path_join(utils.is_windows, copy_config.base, ".") }
   else
     assert(
       type(local_dirs) == "table",
@@ -213,11 +213,11 @@ function Provider:_setup_workspace_variables()
     vim.fn.fnamemodify(remote_nvim.config.neovim_install_script_path, ":t")
   )
   self._remote_neovim_download_script_path =
-      utils.path_join(self._remote_is_windows, self._remote_scripts_path, "neovim_download.sh")
+    utils.path_join(self._remote_is_windows, self._remote_scripts_path, "neovim_download.sh")
   self._remote_neovim_utils_script_path =
-      utils.path_join(self._remote_is_windows, self._remote_scripts_path, "neovim_utils.sh")
+    utils.path_join(self._remote_is_windows, self._remote_scripts_path, "neovim_utils.sh")
   self._remote_workspace_id_path =
-      utils.path_join(self._remote_is_windows, self._remote_workspaces_path, self._remote_workspace_id)
+    utils.path_join(self._remote_is_windows, self._remote_workspaces_path, self._remote_workspace_id)
 
   self._local_path_to_remote_neovim_config = get_copy_paths(remote_nvim.config.remote.copy_dirs.config)
   self._local_path_copy_dirs = {
@@ -234,10 +234,10 @@ function Provider:_setup_workspace_variables()
   }
   for xdg_name, path in pairs(xdg_variables) do
     self["_remote_xdg_" .. xdg_name .. "_path"] =
-        utils.path_join(self._remote_is_windows, self._remote_workspace_id_path, path)
+      utils.path_join(self._remote_is_windows, self._remote_workspace_id_path, path)
   end
   self._remote_neovim_config_path =
-      utils.path_join(self._remote_is_windows, self._remote_xdg_config_path, remote_nvim.config.remote.app_name)
+    utils.path_join(self._remote_is_windows, self._remote_xdg_config_path, remote_nvim.config.remote.app_name)
 
   self:_add_session_info()
 end
@@ -452,7 +452,7 @@ function Provider:_get_remote_neovim_version_preference(prompt_title)
     local client_version = "v" .. utils.neovim_version()
     possible_choices = vim.tbl_filter(function(ver)
       return ver == "nightly"
-          or provider_utils.is_greater_neovim_version(ver, require("remote-nvim.constants").MIN_NEOVIM_VERSION)
+        or provider_utils.is_greater_neovim_version(ver, require("remote-nvim.constants").MIN_NEOVIM_VERSION)
     end, possible_choices)
     table.sort(possible_choices, provider_utils.is_greater_neovim_version)
 
@@ -702,8 +702,7 @@ function Provider:_launch_remote_neovim_server()
 
     -- Launch Neovim server and port forward
     local port_forward_opts = ([[-t -L %s:localhost:%s]]):format(self._local_free_port, remote_free_port)
-    local remote_server_launch_cmd = ([[XDG_CONFIG_HOME=%s XDG_DATA_HOME=%s XDG_STATE_HOME=%s XDG_CACHE_HOME=%s NVIM_APPNAME=%s %s --listen 0.0.0.0:%s --headless]])
-    :format(
+    local remote_server_launch_cmd = ([[XDG_CONFIG_HOME=%s XDG_DATA_HOME=%s XDG_STATE_HOME=%s XDG_CACHE_HOME=%s NVIM_APPNAME=%s %s --listen 0.0.0.0:%s --headless]]):format(
       self._remote_xdg_config_path,
       self._remote_xdg_data_path,
       self._remote_xdg_state_path,
